@@ -29,7 +29,7 @@ def main():
     parser = ObligingArgumentParser(description='Display, extract, and manipulate AMD PSP firmware inside BIOS ROMs.\n',
                                     formatter_class=RawTextHelpFormatter, add_help=False)
 
-    parser.add_argument('file', help='Binary file to be parsed for PSP firmware')
+    parser.add_argument('file', help='Binary file to be parsed for PSP firmware', nargs='?')
     parser.add_argument('-h', '--help', action='help', help=SUPPRESS)
     parser.add_argument('-v', '--verbose', help=SUPPRESS, action='store_true')
 
