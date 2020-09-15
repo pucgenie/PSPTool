@@ -76,6 +76,8 @@ class Blob(NestedBuffer):
             self.dual_rom = False
         else:
             self.agesa_version = str("UNKNOWN")
+            # pucgenie: code path seems to be unsupported
+            self.dual_rom = False
 
 
 
