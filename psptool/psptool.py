@@ -56,10 +56,10 @@ class PSPTool:
         _version_bytes[1] = agesa_version[0].encode('ascii')
         _version_bytes[3] = agesa_version[1].encode('ascii')
         _version_bytes = Blob.AGESA_MAGIC + b'\x00'.join(_version_bytes)
-        _fresh_bytes[0:len(_version_bytes)] = _version_bytes
+        _fresh_bytes[0:0+len(_version_bytes)] = _version_bytes
 
         from .fet import Fet
-        _fresh_bytes[Fet._FIRMWARE_ENTRY_TABLE_BASE_ADDRESS:len(Blob._FIRMWARE_ENTRY_MAGIC)] = Blob._FIRMWARE_ENTRY_MAGIC
+        _fresh_bytes[Fet._FIRMWARE_ENTRY_TABLE_BASE_ADDRESS:Fet._FIRMWARE_ENTRY_TABLE_BASE_ADDRESS+len(Blob._FIRMWARE_ENTRY_MAGIC)] = Blob._FIRMWARE_ENTRY_MAGIC
 
         pt = PSPTool(_fresh_bytes, verbose=verbose)
 
