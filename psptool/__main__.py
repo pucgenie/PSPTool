@@ -74,6 +74,10 @@ def main():
         '-s file: specifies subfile (i.e. the new entry contents)',
         '-o file: specifies outfile',
         '', '']), action='store_true')
+    
+    action.add_argument('-C', '--create-image', help='\n'.join([
+        'Create a "fresh" image. Needs -o.',
+        '', '']), action='store_true')
 
     args = parser.parse_args()
     psp = PSPTool.from_file(args.file, verbose=args.verbose) if args.file else PSPTool.create_file(verbose=args.verbose)
@@ -159,6 +163,10 @@ def main():
             psp.to_file(args.outfile)
         else:
             parser.print_help(sys.stderr)
+    elif args.create_image:
+        if not args.outfile:
+            raise ValueError("Can't write to any file without -o parameter.")
+        psp.to_file(args.outfile)
     else:
         if args.verbose:
             print(psp.blob.agesa_version)
