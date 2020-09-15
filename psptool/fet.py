@@ -23,6 +23,9 @@ from typing import List
 from binascii import hexlify
 
 class Fet(NestedBuffer):
+    #TODO: don't assume this offset
+    _FIRMWARE_ENTRY_TABLE_BASE_ADDRESS = 0x20000
+
     def __init__(self, parent_buffer, fet_offset: int, agesa_version):
 
         # The nested buffer that represents the whole binary
@@ -40,7 +43,7 @@ class Fet(NestedBuffer):
 
 
         #TODO: Don't assume this offset
-        self.fet = NestedBuffer(self, self.fet_size, buffer_offset=0x20000)
+        self.fet = NestedBuffer(self, self.fet_size, buffer_offset=_FIRMWARE_ENTRY_TABLE_BASE_ADDRESS)
 
         self._parse_entry_table()
 
@@ -55,7 +58,7 @@ class Fet(NestedBuffer):
 
     def _determine_rom(self):
         self.mask = 0x00FFFFFF
-        self.blob_offset = self.fet_offset - 0x20000 #TODO don't assume this offset
+        self.blob_offset = self.fet_offset - _FIRMWARE_ENTRY_TABLE_BASE_ADDRESS #TODO don't assume this offset
 
     def _create_dir(self, addr, magic):
         if magic == b'$PSP':

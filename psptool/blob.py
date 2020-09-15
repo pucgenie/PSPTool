@@ -27,13 +27,16 @@ from .fet import Fet
 
 
 class Blob(NestedBuffer):
-    _FIRMWARE_ENTRY_MAGIC = b'\xAA\x55\xAA\x55'
-    _FIRMWARE_ENTRY_TABLE_BASE_ADDRESS = 0x20000
+    _FIRMWARE_ENTRY_MAGIC = (0xAA55AA55).to_bytes(4, byteorder='big')
+
+    AGESA_MAGIC = b'AGESA'
+    # pucgenie: last, empty byte sequence is there to force a \x00 when using b'\x00'.join
+    AGESA_VERSION_STRUCTURE = [rb'!..', rb'.*?', b'']
 
     class NoFirmwareEntryTableError(Exception):
         pass
 
-    def __init__(self, buffer: bytearray, size: int, psptool):
+    def __init__(self, buffer: bytearray, size: int, psptool, agesa_version=None):
         super().__init__(buffer, size)
 
         self.psptool = psptool
@@ -55,7 +58,7 @@ class Blob(NestedBuffer):
 
         # todo: use NestedBuffers instead of saving by value
 
-        m = re.compile(b"AGESA!..\x00.*?\x00")
+        m = re.compile(Blob.AGESA_MAGIC + b'\x00'.join(Blob.AGESA_VERSION_STRUCTURE))
         res = m.findall(self.get_buffer())
 
         # We are only interested in different agesa versions

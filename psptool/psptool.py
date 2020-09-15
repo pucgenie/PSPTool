@@ -31,6 +31,39 @@ class PSPTool:
         pt.filename = filename
 
         return pt
+    
+    @classmethod
+    def create_file(cls, rom_len=0x1000000, agesa_version=[b'!10', b'B'], verbose=False):
+        """
+        parameter agesa_version: two parts, where the first has to be 2 characters, the second may be empty.
+        """
+        if rom_len != 0x1000000:
+            # pucgenie: no 8 MB images, sorry
+            if rom_len == 0x800000:
+                raise NotImplementedError("rom_len: 8 MiB image size is artificially unsupported.")
+            else:
+                raise NotImplementedError("rom_len: Only 16 MiB images are supported at the moment.")
+        if len(agesa_version) != 2:
+            raise ValueError("agesa_version: Has to consist of two parts.")
+        if len(agesa_version[0]) != 3 or (len(agesa_version[0]) == 3 and agesa_version[0] != b'!'):
+            raise ValueError("agesa_version: First part has to be an (ascii) exclamation mark followed by exactly 2 bytes.")
+
+        # http://dangerousprototypes.com/forum/index.php?topic=4292.msg42406#msg42406
+        # Initialize EEPROM empty areas with ones instead of zeroes.
+        _fresh_bytes = bytearray(b'\xff') * rom_len
+        
+        _version_bytes = Blob.AGESA_VERSION_STRUCTURE.copy()
+        _version_bytes[1] = agesa_version[0].encode('ascii')
+        _version_bytes[3] = agesa_version[1].encode('ascii')
+        _version_bytes = Blob.AGESA_MAGIC + b'\x00'.join(_version_bytes)
+        _fresh_bytes[0:len(_version_bytes)] = _version_bytes
+
+        from .fet import Fet
+        _fresh_bytes[Fet._FIRMWARE_ENTRY_TABLE_BASE_ADDRESS:len(Blob._FIRMWARE_ENTRY_MAGIC)] = Blob._FIRMWARE_ENTRY_MAGIC
+
+        pt = PSPTool(_fresh_bytes, verbose=verbose)
+
+        return pt
 
     def __init__(self, rom_bytes, verbose=False):
         self.print_warning = print_warning if verbose else lambda *args, **kwargs: None
