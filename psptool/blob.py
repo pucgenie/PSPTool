@@ -36,7 +36,7 @@ class Blob(NestedBuffer):
     class NoFirmwareEntryTableError(Exception):
         pass
 
-    def __init__(self, buffer: bytearray, size: int, psptool, agesa_version=None):
+    def __init__(self, buffer: bytearray, size: int, psptool):
         super().__init__(buffer, size)
 
         self.psptool = psptool
