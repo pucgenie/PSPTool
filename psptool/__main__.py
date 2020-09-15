@@ -76,7 +76,7 @@ def main():
         '', '']), action='store_true')
 
     args = parser.parse_args()
-    psp = PSPTool.from_file(args.file, verbose=args.verbose)
+    psp = PSPTool.from_file(args.file, verbose=args.verbose) if args.file else PSPTool.create_file(verbose=args.verbose)
     output = None
 
     if args.extract_entry:
