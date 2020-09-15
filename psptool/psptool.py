@@ -33,9 +33,12 @@ class PSPTool:
         return pt
     
     @classmethod
-    def create_file(cls, rom_len=0x1000000, agesa_version=[b'!10', b'B'], verbose=False):
+    def create_file(cls, rom_len=0x1000000, agesa_version=None, verbose=False):
         """
-        parameter agesa_version: two parts, where the first has to be 2 characters, the second may be empty.
+        agesa_version : list
+            two parts, where the first has to be an exclamation mark and 
+            2 bytes, the second part may be empty (at least as far as PSPTool 
+            is concerned). E.g. [b'!10', b'B']
         """
         if rom_len != 0x1000000:
             # pucgenie: no 8 MB images, sorry
@@ -43,23 +46,28 @@ class PSPTool:
                 raise NotImplementedError("rom_len: 8 MiB image size is artificially unsupported.")
             else:
                 raise NotImplementedError("rom_len: Only 16 MiB images are supported at the moment.")
-        if len(agesa_version) != 2:
-            raise ValueError("agesa_version: Has to consist of two parts.")
-        if len(agesa_version[0]) != 3 or (len(agesa_version[0]) == 3 and agesa_version[0] != b'!'):
-            raise ValueError("agesa_version: First part has to be an (ascii) exclamation mark followed by exactly 2 bytes.")
 
         # http://dangerousprototypes.com/forum/index.php?topic=4292.msg42406#msg42406
         # Initialize EEPROM empty areas with ones instead of zeroes.
         _fresh_bytes = bytearray(b'\xff') * rom_len
         
-        _version_bytes = Blob.AGESA_VERSION_STRUCTURE.copy()
-        _version_bytes[1] = agesa_version[0].encode('ascii')
-        _version_bytes[3] = agesa_version[1].encode('ascii')
-        _version_bytes = Blob.AGESA_MAGIC + b'\x00'.join(_version_bytes)
-        _fresh_bytes[0:0+len(_version_bytes)] = _version_bytes
+        if agesa_version:
+            if len(agesa_version) != 2:
+                raise ValueError("agesa_version: Has to consist of two parts.")
+            if len(agesa_version[0]) != 3 or (len(agesa_version[0]) == 3 and agesa_version[0] != b'!'):
+                raise ValueError("agesa_version: First part has to be an (ascii) exclamation mark followed by exactly 2 bytes.")
+            _version_bytes = Blob.AGESA_VERSION_STRUCTURE.copy()
+            _version_bytes[1] = agesa_version[0].encode('ascii')
+            _version_bytes[3] = agesa_version[1].encode('ascii')
+            _version_bytes = Blob.AGESA_MAGIC + b'\x00'.join(_version_bytes)
+            _fresh_bytes[0:0+len(_version_bytes)] = _version_bytes
+        else:
+            # TODO: Warn about missing AGESA version
+            pass
 
         from .fet import Fet
         _fresh_bytes[Fet._FIRMWARE_ENTRY_TABLE_BASE_ADDRESS:Fet._FIRMWARE_ENTRY_TABLE_BASE_ADDRESS+len(Blob._FIRMWARE_ENTRY_MAGIC)] = Blob._FIRMWARE_ENTRY_MAGIC
+        # pucgenie: the FET is kinda... empty.
 
         pt = PSPTool(_fresh_bytes, verbose=verbose)
 
